@@ -22,6 +22,8 @@ var Color = {
     Red: "Red",
 };
 
+var seed = 123;
+
 function init()
 {
     scene = new THREE.Scene();
@@ -79,18 +81,50 @@ function getTerrain(nLevel, color)
 {
     var xLeft = (nLevel-1)*levelWidth;
     var xRight = nLevel * levelWidth;
-    return [
-        [
-            {x: xLeft, y: 1},
-            {x: xLeft, y: 0},
-            {x: xLeft + levelWidth/2, y: 0},
-            {x: xLeft + levelWidth/2, y: 1},
-        ],
-        [
-            {x: xLeft + levelWidth/2, y: 1},
-            {x: xLeft + levelWidth/2, y: 0},
-            {x: xRight, y: 0},
-            {x: xRight, y: 1},
-        ],
-    ];
+
+    var rng = { random: new Math.seedrandom(seed + nLevel) };
+    var simplex = new SimplexNoise(rng);
+
+    var segments = 50;
+
+    var samples = [xLeft, xRight];
+
+    var i;
+    for (i = 0; i < segments-1; ++i)
+    {
+        samples.push(rng.random() * levelWidth + xLeft);
+    }
+
+    samples.sort(function(a,b){return (a<b)?-1:(a>b)?1:0;});
+
+    var relaxedSamples = [xLeft];
+
+    for (i = 1; i < segments; ++i)
+    {
+        relaxedSamples.push((samples[i-1] + samples[i] + samples[i+1])/3);
+    }
+
+    relaxedSamples.push(xRight);
+
+    var heightMap = [0];
+
+    for (i = 1; i < segments; ++i)
+    {
+        heightMap.push(simplex.noise(0, relaxedSamples[i]));
+    }
+
+    heightMap.push(0);
+
+    var polygons = [];
+    for (i = 0; i < segments; ++i)
+    {
+        polygons.push([
+            { x: relaxedSamples[i], y: -10},
+            { x: relaxedSamples[i+1], y: -10},
+            { x: relaxedSamples[i+1], y: heightMap[i+1]},
+            { x: relaxedSamples[i], y: heightMap[i]},
+        ]);
+    }
+
+    return polygons;
 }
