@@ -1,9 +1,32 @@
 <html>
     <head>
-        <title>Yggdrasil</title>
+        <title>Tree of Life</title>
         <style>canvas { width: 95%; height: 95% }</style>
     </head>
     <body>
+        <audio controls loop style="display:none;" id="track1" class="sound">
+            <source src="../assets/music/track1.mp3" type="audio/mpeg" />
+            Your browser does not support the audio tag.
+        </audio>
+        <audio controls loop style="display:none;" id="track2" class="sound">
+            <source src="../assets/music/track2.mp3" type="audio/mpeg" />
+        </audio>
+        <audio controls loop style="display:none;" id="heartbeat" class="sound">
+            <source src="../assets/music/heartbeat.mp3" type="audio/mpeg" />
+        </audio>
+        <audio controls loop style="display:none;" id="rain" class="sound">
+            <source src="../assets/music/rain.wav" type="audio/mpeg" />
+        </audio>
+        <audio controls loop style="display:none;" id="wind" class="sound">
+            <source src="../assets/music/wind.mp3" type="audio/mpeg" />
+        </audio>
+        <audio controls style="display:none;" id="tinkle" class="sound">
+            <source src="../assets/music/heartbeat.mp3" type="audio/mpeg" />
+        </audio>
+        <audio controls style="display:none;" id="creaking" class="sound">
+            <source src="../assets/music/creaking.mp3" type="audio/mpeg" />
+        </audio>
+
         <script src="three.min.js"></script>
         <script src="threex.keyboardstate.js"></script>
         <script src="Box2dWeb-2.1.a.3.min.js"></script>
@@ -11,6 +34,7 @@
         <script src="jquery.color-2.1.2.js"></script>
         <script src="seedrandom.js"></script>
         <script src="simplex-noise.js"></script>
+        <script src="audio-handler.js"></script>
 
         <script src="ColorGenerator.js"></script>
         <script src="lighting.js"></script>

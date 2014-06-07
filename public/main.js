@@ -1,4 +1,4 @@
-    window.onload = init;
+window.onload = init;
 
 var scene;
 var camera;
@@ -41,8 +41,15 @@ var updateFcts	= [];
 var seed = new Date()+[];
 
 var level = 0;
-var color;
 var lastElevation = 0;
+
+var leaves = [];
+
+var gotYellow = false;
+var gotGreen = false;
+var gotRed = false;
+
+var hudLeaves;
 
 function init()
 {
@@ -65,7 +72,8 @@ function init()
 
     createBackground();
 
-
+    createHUDLeaves();
+    audioInit();
 
 	world = new b2World(
         new b2Vec2(0, -50),    //gravity
@@ -104,7 +112,33 @@ function init()
 			vector = new b2Vec2(-1, 0);
 		}else if( keyboard.pressed('right') ){
 			vector = new b2Vec2(1, 0);
-		}
+		}else if( keyboard.pressed('e')){
+            pickUpItems();
+        }else if( keyboard.pressed('r')){
+            if (gotRed)
+            {
+                gotRed = false;
+                addLevel(Color.Red);
+                audioSetColor(Color.Red);
+                scene.remove(hudLeaves[0]);
+            }
+        }else if( keyboard.pressed('g')){
+            if (gotGreen)
+            {
+                gotGreen = false;
+                addLevel(Color.Green);
+                audioSetColor(Color.Green);
+                scene.remove(hudLeaves[1]);
+            }
+        }else if( keyboard.pressed('y')){
+            if (gotYellow)
+            {
+                gotYellow = false;
+                addLevel(Color.Yellow);
+                audioSetColor(Color.Yellow);
+                scene.remove(hudLeaves[2]);
+            }
+        }
 
 		var foo = player_fixture.GetBody().GetWorldCenter();
 		//b2player.ApplyImpulse(vector,foo);
@@ -170,6 +204,26 @@ function createBackground() {
     scene.add(bgMesh);
 }
 
+function createHUDLeaves() {
+    var leafRTexture = THREE.ImageUtils.loadTexture('../assets/Leaf Assets/special_3.png');
+    var leafGTexture = THREE.ImageUtils.loadTexture('../assets/Leaf Assets/green_3.png');
+    var leafYTexture = THREE.ImageUtils.loadTexture('../assets/Leaf Assets/dead_3.png');
+    var leafRMaterial = new THREE.MeshBasicMaterial({map: leafRTexture, transparent: true});
+    var leafGMaterial = new THREE.MeshBasicMaterial({map: leafGTexture, transparent: true});
+    var leafYMaterial = new THREE.MeshBasicMaterial({map: leafYTexture, transparent: true});
+    var leafRGeometry = new THREE.PlaneGeometry(1, 1);
+    var leafGGeometry = new THREE.PlaneGeometry(1, 1);
+    var leafYGeometry = new THREE.PlaneGeometry(1, 1);
+    leafRMesh = new THREE.Mesh(leafRGeometry, leafRMaterial);
+    leafGMesh = new THREE.Mesh(leafGGeometry, leafGMaterial);
+    leafYMesh = new THREE.Mesh(leafYGeometry, leafYMaterial);
+
+    hudLeaves = [];
+    hudLeaves.push(leafRMesh);
+    hudLeaves.push(leafGMesh);
+    hudLeaves.push(leafYMesh);
+}
+
 function addLevel(color) {
     var terrain = getTerrain(level, lastElevation, color);
 
@@ -177,10 +231,71 @@ function addLevel(color) {
 
     populateTerrain(terrain);
 
-    if (level > 0)
-        getLeafList(terrain);
+    var newLeaves;
+    if (level === 0)
+    {
+        newLeaves = [{
+            color: Color.Green,
+            leafPos: { x: 95, y: 1 },
+        }];
+    }
+    else
+    {
+        newLeaves = getLeafList(terrain);
+        console.log(newLeaves);
+    }
 
+    addLeaves(newLeaves);
     ++level;
+}
+
+function addLeaves(newLeaves) {
+    var prefixes = {
+        Green: 'green',
+        Red: 'special',
+        Yellow: 'dead',
+    };
+
+    for (var i = 0; i < newLeaves.length; ++i)
+    {
+        var leaf = newLeaves[i];
+
+
+        var leafTexture = THREE.ImageUtils.loadTexture('../assets/Leaf Assets/' + prefixes[leaf.color] + '_3.png');
+        var leafMaterial = new THREE.MeshBasicMaterial( { map: leafTexture, transparent: true} );
+        var leafGeometry = new THREE.PlaneGeometry(1,1,1);
+        t3leaf = new THREE.Mesh( leafGeometry, leafMaterial );
+        t3leaf.position.x = leaf.leafPos.x;
+        t3leaf.position.y = leaf.leafPos.y;
+
+        leaf.t3 = t3leaf;
+        scene.add( t3leaf );
+
+        leaves.push(leaf);
+    }
+}
+
+function pickUpItems() {
+    var leaf;
+    for (var i = 0; i < leaves.length; ++i)
+    {
+        leaf = leaves[i];
+        if (Math.abs(leaf.leafPos.x - t3player.position.x) < 1 &&
+            Math.abs(leaf.leafPos.y - t3player.position.y) < 1)
+            break;
+    }
+
+    if(i >= leaves.length) return;
+
+    switch(leaf.color)
+    {
+        case Color.Red: gotRed = true; scene.add(hudLeaves[0]); break;
+        case Color.Green: gotGreen = true; scene.add(hudLeaves[1]); break;
+        case Color.Yellow: gotYellow = true; scene.add(hudLeaves[2]); break;
+    }
+
+    scene.remove(leaf.t3);
+    leaves.splice(i,1);
 }
 
 var check = true;
@@ -265,7 +380,9 @@ function populateTerrain(terrain) {
 function render() {
     requestAnimationFrame(render);
 
-	// Physics update
+    soundBites();
+	
+    // Physics update
 	world.Step(
 	1 / 60,   //frame-rate
 	10,       //velocity iterations
@@ -286,6 +403,13 @@ function render() {
 	camera.position.y = t3player.position.y +1;
     bgMesh.position.x = camera.position.x;
     bgMesh.position.y = camera.position.y;
+
+    hudLeaves[0].position.x = camera.position.x - 7;
+    hudLeaves[0].position.y = camera.position.y + 3;
+    hudLeaves[1].position.x = camera.position.x - 6;
+    hudLeaves[1].position.y = camera.position.y + 3;
+    hudLeaves[2].position.x = camera.position.x - 5;
+    hudLeaves[2].position.y = camera.position.y + 3;
 
 	// End of physics update
 
@@ -410,9 +534,9 @@ function getLeafList(terrainArray)
     randList = [Math.floor((Math.random()*len/3-1) + 1),
     Math.floor((Math.random()*len/3-1) + len/3),
     Math.floor((Math.random()*len/3-1) + 2*len/3)];
-    leafList = ["red","green", "blue"];
+    leafList = [Color.Red,Color.Green, Color.Yellow];
     outLeafList = [];
-    while(randList.length != 0)
+    while(randList.length !== 0)
     {
         var selectIndex = Math.floor((Math.random()*leafList.length));
         var selectedLeaf = leafList[selectIndex];
@@ -429,7 +553,7 @@ function getLeafPos(leaf, targetBlock)
 {
     leaf.leafPos = {
         x:(targetBlock[2].x + targetBlock[3].x)/2,
-        y:(targetBlock[2].y + targetBlock[3].y)/2,
+        y:(targetBlock[2].y + targetBlock[3].y)/2 + 1,
     };
     console.log(leaf.leafPos);
     return leaf;
