@@ -34,7 +34,7 @@ function init()
     camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
 	camera.position.x = 0;
 	camera.position.y = 1;
-	camera.position.z = 1;
+	camera.position.z = 10;
 	camera.lookAt(new THREE.Vector3(0,0,0));
 
     renderer = new THREE.WebGLRenderer();
@@ -51,11 +51,17 @@ function init()
 	//var t3ground = new THREE.Mesh(new THREE.BoxGeometry(100,1,100), new THREE.MeshBasicMaterial({color: 0x0000ff}));
 	var t3ground = new THREE.Mesh( new THREE.BoxGeometry(1,1,1), new THREE.MeshBasicMaterial( { color: 0x0000ff } ) );
 
-
 //	t3ground.scale.x = 500;
 //	t3ground.scale.y = 500;
-	t3ground.position.y = -3;
+	t3ground.position.y = 0;
 	scene.add(t3ground);
+
+    var bgTexture = THREE.ImageUtils.loadTexture('../assets/reducedbackground.png');
+    var bgMaterial = new THREE.MeshBasicMaterial({map: bgTexture});
+    var bgGeometry = new THREE.PlaneGeometry(200, 100);
+    var bgMesh = new THREE.Mesh(bgGeometry, bgMaterial);
+    bgMesh.position.z = -40;
+    scene.add(bgMesh);
 
     camera.position.z = 5;
 
@@ -118,8 +124,8 @@ function init()
 			vector = new b2Vec2(1, 0);
 		}
 
-		console.log(b2player.GetWorldCenter());
-		console.log(player_fixture);
+		//console.log(b2player.GetWorldCenter());
+		//console.log(player_fixture);
 		var foo = player_fixture.GetBody().GetWorldCenter();
 		//b2player.ApplyImpulse(vector,foo);
         player_fixture.GetBody().ApplyImpulse(vector,foo);
