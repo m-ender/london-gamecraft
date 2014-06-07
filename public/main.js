@@ -49,10 +49,12 @@ function init()
     // box.SetAsBox(0.5,0.5);
 
     console.log(getTerrain(1, Color.Red));
-    console.log(getTerrain(2, Color.Blue));
+    terrain = getTerrain(2, Color.Blue);
+    console.log(terrain);
 
     lastTime = Date.now();
     render();
+    getLeafList(terrain);
 }
 
 
@@ -81,16 +83,51 @@ function getTerrain(nLevel, color)
     var xRight = nLevel * levelWidth;
     return [
         [
-            {x: xLeft, y: 1},
             {x: xLeft, y: 0},
             {x: xLeft + levelWidth/2, y: 0},
             {x: xLeft + levelWidth/2, y: 1},
+            {x: xLeft, y: 1},
         ],
         [
-            {x: xLeft + levelWidth/2, y: 1},
             {x: xLeft + levelWidth/2, y: 0},
             {x: xRight, y: 0},
             {x: xRight, y: 1},
+            {x: xLeft + levelWidth/2, y: 1},
         ],
     ];
+}
+
+function getLeafList(terrainArray)
+{
+    var len = terrainArray.length;
+    randList = [Math.floor((Math.random()*len/3-1) + 1),
+    Math.floor((Math.random()*len/3-1) + len/3),
+    Math.floor((Math.random()*len/3-1) + 2*len/3)]
+
+    leafList = ["red","green", "blue"];
+
+    outLeafList = []
+
+    while(randList.length != 0)
+    {
+        var selectIndex = Math.floor((Math.random()*leafList.length));
+        var selectedLeaf = leafList[selectIndex];
+        targetBlock = terrainArray[randList.pop()];
+        leaf = {color: selectedLeaf, leafPos:{x:0,y:0}};
+        leaf = getLeafPos(leaf, targetBlock);
+        outLeafList.push(leaf);
+    }
+    console.log(outLeafList);
+
+    return outLeafList
+}
+
+function getLeafPos(leaf, targetBlock)
+{
+    leaf.leafPos = {
+        x:(targetBlock[2].x + targetBlock[3].x)/2,
+        y:(targetBlock[2].y + targetBlock[3].y)/2,
+    };
+    console.log(leaf.leafPos);
+    return leaf
 }
