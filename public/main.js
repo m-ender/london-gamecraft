@@ -41,11 +41,7 @@ function init()
     renderer.setSize( window.innerWidth * 0.7, window.innerHeight * 0.7);
     document.body.appendChild( renderer.domElement );
 
-    var geometry = new THREE.BoxGeometry(1,1,1);
-    var material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
-    t3player = new THREE.Mesh( geometry, material );
-    t3player.position.y = 50;
-    scene.add( t3player );
+    createPlayer();
 	var b2player;
 
 	//var t3ground = new THREE.Mesh(new THREE.BoxGeometry(100,1,100), new THREE.MeshBasicMaterial({color: 0x0000ff}));
@@ -56,12 +52,7 @@ function init()
 	t3ground.position.y = 0;
 	scene.add(t3ground);
 
-    var bgTexture = THREE.ImageUtils.loadTexture('../assets/reducedbackground.png');
-    var bgMaterial = new THREE.MeshBasicMaterial({map: bgTexture});
-    var bgGeometry = new THREE.PlaneGeometry(200, 100);
-    var bgMesh = new THREE.Mesh(bgGeometry, bgMaterial);
-    bgMesh.position.z = -40;
-    scene.add(bgMesh);
+    createBackground();
 
     camera.position.z = 5;
 
@@ -160,6 +151,24 @@ function init()
     lastTime = Date.now();
     render();
     getLeafList(terrain);
+}
+
+function createPlayer() {
+    var playerTexture = THREE.ImageUtils.loadTexture('../assets/Character_for_testing.png');
+    var playerMaterial = new THREE.MeshBasicMaterial( { map: playerTexture, transparent: true} );
+    var playerGeometry = new THREE.PlaneGeometry(1,4.5/4,1);
+    t3player = new THREE.Mesh( playerGeometry, playerMaterial );
+    t3player.position.y = 10;
+    scene.add( t3player );
+}
+
+function createBackground() {
+    var bgTexture = THREE.ImageUtils.loadTexture('../assets/reducedbackground.png');
+    var bgMaterial = new THREE.MeshBasicMaterial({map: bgTexture});
+    var bgGeometry = new THREE.PlaneGeometry(200, 100);
+    var bgMesh = new THREE.Mesh(bgGeometry, bgMaterial);
+    bgMesh.position.z = -40;
+    scene.add(bgMesh);
 }
 
 var check = true;
