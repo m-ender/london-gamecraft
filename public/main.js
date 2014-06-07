@@ -5,6 +5,14 @@ var camera;
 var renderer;
 
 var t3player;
+// Box2D
+var b2Vec2 = Box2D.Common.Math.b2Vec2;
+var b2World = Box2D.Dynamics.b2World;
+var b2FixtureDef = Box2D.Dynamics.b2FixtureDef;
+var b2BodyDef = Box2D.Dynamics.b2BodyDef;
+var b2Body = Box2D.Dynamics.b2Body;
+var b2PolygonShape = Box2D.Collision.Shapes.b2PolygonShape;
+
 
 var world;
 var player_fixture;
@@ -30,12 +38,14 @@ var seed = 123;
 
 function init()
 {
+var bodyDef = new b2BodyDef;
     scene = new THREE.Scene();
     camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
-	camera.position.x = 0;
-	camera.position.y = 1;
-	camera.position.z = 10;
-	camera.lookAt(new THREE.Vector3(0,0,0));
+    camera.position.x = 110
+	camera.position.y = 1
+	camera.position.z = 10
+	camera.lookAt(new THREE.Vector3(110,0,0))
+
 
     renderer = new THREE.WebGLRenderer();
     renderer.setSize( window.innerWidth * 0.7, window.innerHeight * 0.7);
@@ -56,13 +66,7 @@ function init()
 
     camera.position.z = 5;
 
-	// Box2D
-	var b2Vec2 = Box2D.Common.Math.b2Vec2;
-	var b2World = Box2D.Dynamics.b2World;
-	var b2FixtureDef = Box2D.Dynamics.b2FixtureDef;
-	var b2BodyDef = Box2D.Dynamics.b2BodyDef;
-	var b2Body = Box2D.Dynamics.b2Body;
-	var b2PolygonShape = Box2D.Collision.Shapes.b2PolygonShape;
+
 
 	world = new b2World(
         new b2Vec2(0, -50),    //gravity
@@ -74,7 +78,7 @@ function init()
 	fixDef.friction = 0.5;
 	fixDef.restitution = 0.0;
 
-	var bodyDef = new b2BodyDef;
+	
 
 	//create b2ground
 	bodyDef.type = b2Body.b2_staticBody;
@@ -84,6 +88,9 @@ function init()
 	fixDef.shape.SetAsBox(0.5,0.5);
 	world.CreateBody(bodyDef).CreateFixture(fixDef);
 
+    console.debug(fixDef)
+    
+    
 	// b2player
 	bodyDef.type = b2Body.b2_dynamicBody;
 	fixDef.shape = new b2PolygonShape;
@@ -96,10 +103,6 @@ function init()
 	player_fixture = b2player.CreateFixture(fixDef);
 
 	// End of Box2D
-
-    console.log(getTerrain(1, Color.Red));
-    //console.log(getTerrain(2, Color.Blue));
-
 
 	// Keyboard code
 	keyboard	= new THREEx.KeyboardState(renderer.domElement);
@@ -115,8 +118,6 @@ function init()
 			vector = new b2Vec2(1, 0);
 		}
 
-		//console.log(b2player.GetWorldCenter());
-		//console.log(player_fixture);
 		var foo = player_fixture.GetBody().GetWorldCenter();
 		//b2player.ApplyImpulse(vector,foo);
         player_fixture.GetBody().ApplyImpulse(vector,foo);
@@ -144,13 +145,23 @@ function init()
 	});
 	// End of keyboard code
 
+
     console.log(getTerrain(1, 0, Color.Red));
     terrain = getTerrain(2, 0, Color.Blue);
     console.log(terrain);
 
+
+	var terrainTest = getTerrain(1,0,Color.Blue)
+	console.log(terrainTest)
+	populateTerrain(terrainTest)
+	
+
     lastTime = Date.now();
     render();
     getLeafList(terrain);
+    
+    console.debug(scene)
+    
 }
 
 function createPlayer() {
@@ -158,6 +169,7 @@ function createPlayer() {
     var playerMaterial = new THREE.MeshBasicMaterial( { map: playerTexture, transparent: true} );
     var playerGeometry = new THREE.PlaneGeometry(1,4.5/4,1);
     t3player = new THREE.Mesh( playerGeometry, playerMaterial );
+    t3player.position.x = 105;
     t3player.position.y = 10;
     scene.add( t3player );
 }
@@ -172,6 +184,62 @@ function createBackground() {
 }
 
 var check = true;
+
+function populateTerrain(terrain) {
+    
+    for (var i = 0; i < terrain.length; ++i) {
+        
+            var tile = terrain[i]
+            var geometry = new THREE.BoxGeometry(1,1,1)
+            
+            
+            geometry.vertices[0].x = tile[2].x
+            geometry.vertices[0].y = tile[2].y
+            geometry.vertices[1].x = tile[2].x
+            geometry.vertices[1].y = tile[2].y
+            geometry.vertices[2].x = tile[1].x
+            geometry.vertices[2].y = tile[1].y
+            geometry.vertices[3].x = tile[1].x
+            geometry.vertices[3].y = tile[1].y
+            geometry.vertices[4].x = tile[3].x
+            geometry.vertices[4].y = tile[3].y
+            geometry.vertices[5].x = tile[3].x
+            geometry.vertices[5].y = tile[3].y
+            geometry.vertices[6].x = tile[0].x
+            geometry.vertices[6].y = tile[0].y
+            geometry.vertices[7].x = tile[0].x
+            geometry.vertices[7].y = tile[0].y
+            console.debug(geometry)
+
+            var material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
+            var mesh = new THREE.Mesh( geometry, material );
+
+            scene.add( mesh );
+        
+        var bodyDef = new b2BodyDef;
+        var fixDef = new b2FixtureDef;
+        bodyDef.type = b2Body.b2_staticBody;
+        fixDef.shape = new b2PolygonShape;
+        
+        var vertices = [];
+        for(var v = 0; v < tile.length; v++) {
+        
+            var vert = new b2Vec2()
+            
+            vert.Set(tile[v].x, tile[v].y);
+            
+            vertices.push(vert);
+        }
+        
+        fixDef.shape.SetAsArray(vertices, vertices.length);
+        fixDef.shape.m_radius = 1;
+        
+        console.log(fixDef)
+        world.CreateBody(bodyDef).CreateFixture(fixDef);
+
+    }
+
+}
 
 function render() {
     requestAnimationFrame(render);
@@ -193,6 +261,9 @@ function render() {
 	}
 	t3player.position.x = body.position.x;
 	t3player.position.y = body.position.y;
+    camera.position.x = t3player.position.x
+	camera.position.y = t3player.position.y
+
 
 	// End of physics update
 
