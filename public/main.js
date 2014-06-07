@@ -14,6 +14,14 @@ var fps = 60;
 var interval = 1000/fps;
 var lastTime;
 
+var levelWidth = 100;
+
+var Color = {
+    Blue: "Blue",
+    Green: "Green",
+    Red: "Red",
+};
+
 function init()
 {
     scene = new THREE.Scene();
@@ -40,6 +48,9 @@ function init()
     // var box = new b2PolygonShape();
     // box.SetAsBox(0.5,0.5);
 
+    console.log(getTerrain(1, Color.Red));
+    console.log(getTerrain(2, Color.Blue));
+
     lastTime = Date.now();
     render();
 }
@@ -62,4 +73,24 @@ function render() {
 
         renderer.render(scene, camera);
     }
+}
+
+function getTerrain(nLevel, color)
+{
+    var xLeft = (nLevel-1)*levelWidth;
+    var xRight = nLevel * levelWidth;
+    return [
+        [
+            {x: xLeft, y: 1},
+            {x: xLeft, y: 0},
+            {x: xLeft + levelWidth/2, y: 0},
+            {x: xLeft + levelWidth/2, y: 1},
+        ],
+        [
+            {x: xLeft + levelWidth/2, y: 1},
+            {x: xLeft + levelWidth/2, y: 0},
+            {x: xRight, y: 0},
+            {x: xRight, y: 1},
+        ],
+    ];
 }
