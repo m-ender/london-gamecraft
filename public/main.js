@@ -17,6 +17,8 @@ var b2PolygonShape = Box2D.Collision.Shapes.b2PolygonShape;
 var world;
 var player_fixture;
 
+var jumped = null;
+
 // Timing
 // We need these to fix the framerate
 var fps = 60;
@@ -133,7 +135,18 @@ var bodyDef = new b2BodyDef;
 
 	// only on keydown
 	keyboard.domElement.addEventListener('keydown', function(event){
-		var vector;
+        console.debug(event)
+        if(event.keyCode == 32) {
+            var ct = Date.now()
+            var jdelta = ct - jumped
+            console.debug("jump! " + jumped)
+            if(jumped == null || jdelta > 600) {
+                console.debug("just jumped: " + jdelta)
+                jumped = ct
+                var foo = player_fixture.GetBody().GetWorldCenter();
+                player_fixture.GetBody().ApplyImpulse(new b2Vec2(0, 15),foo);
+            }
+        }
 //		if( keyboard.eventMatches(event, 'w') )
 //
 //		if( keyboard.eventMatches(event, 's') )	t3player.scale.y	*= 2
