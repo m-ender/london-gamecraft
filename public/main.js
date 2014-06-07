@@ -30,12 +30,13 @@ var seed = 123;
 
 function init()
 {
+
     scene = new THREE.Scene();
     camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
-	camera.position.x = 0
-	camera.position.y = 1
-	camera.position.z = 1
-	camera.lookAt(new THREE.Vector3(0,0,0))
+	camera.position.x = 110
+	camera.position.y = 0
+	camera.position.z = 10
+	camera.lookAt(new THREE.Vector3(110,0,0))
 
     renderer = new THREE.WebGLRenderer();
     renderer.setSize( window.innerWidth * 0.7, window.innerHeight * 0.7);
@@ -100,8 +101,8 @@ function init()
 
 	// End of Box2D
 
-    //console.log(getTerrain(1, Color.Red));
-    //console.log(getTerrain(2, Color.Blue));
+    //console.log(getTerrain(1, 0, Color.Red));
+    //console.log(getTerrain(2, 0, Color.Blue));
 
 
 	// Keyboard code
@@ -118,8 +119,8 @@ function init()
 			vector = new b2Vec2(1, 0)
 		}
 
-		console.log(b2player.GetWorldCenter());
-		console.log(player_fixture);
+//		console.log(b2player.GetWorldCenter());
+//		console.log(player_fixture);
 		var foo = player_fixture.GetBody().GetWorldCenter();
 		//b2player.ApplyImpulse(vector,foo);
         player_fixture.GetBody().ApplyImpulse(vector,foo);
@@ -147,16 +148,57 @@ function init()
 	})
 	// End of keyboard code
 
-    console.log(getTerrain(1, Color.Red));
-    terrain = getTerrain(2, Color.Blue);
+    console.log(getTerrain(1,0, Color.Red));
+    terrain = getTerrain(2, 0, Color.Blue);
     console.log(terrain);
+
+
+	var terrainTest = getTerrain(1,0,Color.Blue)
+	console.log(terrainTest)
+	populateTerrain(terrainTest)
+	
 
     lastTime = Date.now();
     render();
     getLeafList(terrain);
+    
+    console.debug(scene)
+    
 }
 
 var check = true
+
+function populateTerrain(terrain) {
+    for (var i = 0; i < terrain.length; ++i) {
+            var tile = terrain[i]
+            var geometry = new THREE.BoxGeometry(1,1,1)
+            
+            
+            geometry.vertices[0].x = tile[2].x
+            geometry.vertices[0].y = tile[2].y
+            geometry.vertices[1].x = tile[2].x
+            geometry.vertices[1].y = tile[2].y
+            geometry.vertices[2].x = tile[1].x
+            geometry.vertices[2].y = tile[1].y
+            geometry.vertices[3].x = tile[1].x
+            geometry.vertices[3].y = tile[1].y
+            geometry.vertices[4].x = tile[3].x
+            geometry.vertices[4].y = tile[3].y
+            geometry.vertices[5].x = tile[3].x
+            geometry.vertices[5].y = tile[3].y
+            geometry.vertices[6].x = tile[0].x
+            geometry.vertices[6].y = tile[0].y
+            geometry.vertices[7].x = tile[0].x
+            geometry.vertices[7].y = tile[0].y
+            console.debug(geometry)
+
+            var material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
+            var mesh = new THREE.Mesh( geometry, material );
+
+            scene.add( mesh );
+    }
+
+}
 
 function render() {
     requestAnimationFrame(render);
