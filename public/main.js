@@ -185,7 +185,8 @@ function init()
 }
 
 function createPlayer() {
-    var playerTexture = THREE.ImageUtils.loadTexture('../assets/Character_for_testing.png');
+    //var playerTexture = THREE.ImageUtils.loadTexture('../assets/Character_for_testing.png');
+    var playerTexture = THREE.ImageUtils.loadTexture('../assets/updatedFairy.png');
     var playerMaterial = new THREE.MeshBasicMaterial( { map: playerTexture, transparent: true} );
     var playerGeometry = new THREE.PlaneGeometry(1,4.5/4,1);
     t3player = new THREE.Mesh( playerGeometry, playerMaterial );
@@ -302,8 +303,11 @@ var check = true;
 function populateTerrain(terrain) {
 
     var groundTexture = THREE.ImageUtils.loadTexture('../assets/FINALTEXTURE.png');
-    var groundMaterial = new THREE.MeshBasicMaterial( { map: groundTexture, transparent: true} );
+    groundTexture.wrapS = groundTexture.wrapT = THREE.RepeatWrapping;
+    groundTexture.repeat.set( 1, 1 );
     
+        var groundMaterial = new THREE.MeshBasicMaterial( { map: groundTexture, transparent: true} );
+
     for (var i = 0; i < terrain.length; ++i) {
 
             var tile = terrain[i]
@@ -336,10 +340,14 @@ function populateTerrain(terrain) {
                 for(var jj = 0; jj < yyy; jj++)
                     //console.log(ii , jj);
                     geometry.faces[ii].vertexNormals[jj]=geometry.faces[ii].normal;
+//            geometry.uvsNeedUpdate = true
 
+        console.debug("foo")
+            console.debug(geometry.faceVertexUvs)
+        
 //        geometry.normalsNeedUpdate = true;
         var material = new THREE.MeshPhongMaterial( { color: 0x00ff00 } );
-            var mesh = new THREE.Mesh( geometry, material );
+            var mesh = new THREE.Mesh( geometry, groundMaterial );
 
 
             scene.add( mesh );
