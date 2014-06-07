@@ -18,12 +18,10 @@ function soundBites(){
     else if(color=="Green"){
         var selectedSoundBite = wind;
         var modifier = 0;
-        alert("hi");
     }
     else if(color=="Yellow"){
         var selectedSoundBite = rain;
         var modifier = 0;
-        alert("hi")
     }
     else
     {
