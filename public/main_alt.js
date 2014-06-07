@@ -26,13 +26,29 @@ var Color = {
 var keyboard;
 var updateFcts	= [];
 
+
+function t3toD2(object) {
+	var bodyDef = new b2BodyDef;
+
+	//create ground
+	bodyDef.type = b2Body.b2_staticBody;
+	bodyDef.position.x = object.position.x;
+	bodyDef.position.y = object.position.y;
+	fixDef.shape = new b2PolygonShape;
+	fixDef.shape.SetAsBox(object.scale.x / 2, object.scale.y / 2);
+
+	return world.CreateBody(bodyDef).CreateFixture(fixDef);
+}
+
+
+
 function init()
 {
     scene = new THREE.Scene();
     camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
 	camera.position.x = 0
-	camera.position.y = 1
-	camera.position.z = 1
+	camera.position.y = 1.5
+	camera.position.z = 4.0
 	camera.lookAt(new THREE.Vector3(0,0,0))
 
     renderer = new THREE.WebGLRenderer();
@@ -47,7 +63,7 @@ function init()
 	var b2player
 
 	//var t3ground = new THREE.Mesh(new THREE.BoxGeometry(100,1,100), new THREE.MeshBasicMaterial({color: 0x0000ff}));
-	var t3ground = new THREE.Mesh( new THREE.BoxGeometry(1,1,1), new THREE.MeshBasicMaterial( { color: 0x0000ff } ) );
+	var t3ground = new THREE.Mesh( new THREE.BoxGeometry(5,5,1), new THREE.MeshBasicMaterial( { color: 0x0000ff } ) );
 
 
 //	t3ground.scale.x = 500;
@@ -70,36 +86,37 @@ function init()
 	true                  //allow sleep
 	);
 
-	var fixDef = new b2FixtureDef;
-	fixDef.density = 1.0;
-	fixDef.friction = 0.5;
-	fixDef.restitution = 0.0;
+//	var b2groundFixDef = new b2FixtureDef;
+//	fixDef.density = 1.0;
+//	fixDef.friction = 0.5;
+//	fixDef.restitution = 0.0;
 
-	var bodyDef = new b2BodyDef;
-
-	//create b2ground
-	bodyDef.type = b2Body.b2_staticBody;
-	bodyDef.position.x = t3ground.position.x;
-	bodyDef.position.y = t3ground.position.y;
-	fixDef.shape = new b2PolygonShape;
-	fixDef.shape.SetAsBox(0.5,0.5);
-	world.CreateBody(bodyDef).CreateFixture(fixDef);
-
-	// b2player
-	bodyDef.type = b2Body.b2_dynamicBody;
-	fixDef.shape = new b2PolygonShape;
-	fixDef.shape.SetAsBox(0.5,0.5);
-
-	bodyDef.position.x = t3player.position.x;
-	bodyDef.position.y = t3player.position.y;
-
-	b2player = world.CreateBody(bodyDef);
-	player_fixture = b2player.CreateFixture(fixDef);
+//	var bdGround = new b2BodyDef;
+//
+//	//create b2ground
+//	bdGround.type = b2Body.b2_staticBody;
+//	bdGround.position.x = t3ground.position.x;
+//	bdGround.position.y = t3ground.position.y;
+//	b2groundFixDef.shape = new b2PolygonShape;
+//	b2groundFixDef.shape.SetAsBox(t3ground.scale.x, t3ground.scale.y);
+//	world.CreateBody(bodyDef).CreateFixture(fixDef);
+//
+//	// b2player
+//	var bdPlayer = new b2BodyDef;
+//	bdPlayer.type = b2Body.b2_dynamicBody;
+//	b2groundFixDef.shape = new b2PolygonShape;
+//	fixDef.shape.SetAsBox(t3player.scale.x, t3player.scale.y);
+//
+//	bodyDef.position.x = 0;
+//	bodyDef.position.y = 0;
+//
+//	b2player = world.CreateBody(bodyDef);
+//	player_fixture = b2player.CreateFixture(fixDef);
 
 	// End of Box2D
 
-    //console.log(getTerrain(1, Color.Red));
-    //console.log(getTerrain(2, Color.Blue));
+    console.log(getTerrain(1, Color.Red));
+    console.log(getTerrain(2, Color.Blue));
 
 
 	// Keyboard code
@@ -111,16 +128,15 @@ function init()
 		var vector = new b2Vec2(0, 0);
 
 		if( keyboard.pressed('left') ){
-			vector = new b2Vec2(-1, 0)
+			vector = new b2Vec2(-10, 0)
 		}else if( keyboard.pressed('right') ){
-			vector = new b2Vec2(1, 0)
+			vector = new b2Vec2(10, 0)
 		}
 
-		console.log(b2player.GetWorldCenter());
-		console.log(player_fixture);
+//		console.log(b2player.GetWorldCenter());
+//		console.log(player_fixture);
 		var foo = player_fixture.GetBody().GetWorldCenter();
-		//b2player.ApplyImpulse(vector,foo);
-        player_fixture.GetBody().ApplyImpulse(vector,foo);
+		b2player.ApplyImpulse(vector,foo);
 
 //		if( keyboard.pressed('down') ){
 //			t3player.rotation.x += 1 * delta;
@@ -140,8 +156,8 @@ function init()
 	})
 	// only on keyup
 	keyboard.domElement.addEventListener('keyup', function(event){
-		//if( keyboard.eventMatches(event, 'a') )	t3player.scale.x	*= 2
-		//if( keyboard.eventMatches(event, 'd') )	t3player.scale.x	/= 2
+		if( keyboard.eventMatches(event, 'a') )	t3player.scale.x	*= 2
+		if( keyboard.eventMatches(event, 'd') )	t3player.scale.x	/= 2
 	})
 	// End of keyboard code
 
@@ -162,7 +178,7 @@ function render() {
 	10       //position iterations
 	);
 	world.ClearForces();
-    var body = player_fixture.GetBody().GetDefinition();
+var body = player_fixture.GetBody().GetDefinition();
 
 	if(check) {
 	console.debug(t3player.position)
@@ -170,8 +186,8 @@ function render() {
 
 		check = false
 	}
-	t3player.position.x = body.position.x;
-	t3player.position.y = body.position.y;
+	t3player.position.x = body.position.x /100;
+	t3player.position.y = body.position.y /100;
 
 	// End of physics update
 
