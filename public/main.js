@@ -50,6 +50,8 @@ var gotYellow = false;
 var gotGreen = false;
 var gotRed = false;
 
+var hudLeaves;
+
 function init()
 {
     scene = new THREE.Scene();
@@ -61,14 +63,17 @@ function init()
 
 
     renderer = new THREE.WebGLRenderer();
-    renderer.setSize( window.innerWidth * 0.7, window.innerHeight * 0.7);
+    renderer.setSize( window.innerWidth * 0.99, window.innerHeight * 0.99);
     document.body.appendChild( renderer.domElement );
 
+    addLighting();
+    
     createPlayer();
 	var b2player;
 
     createBackground();
 
+    createHUDLeaves();
     audioInit();
 
 	world = new b2World(
@@ -115,18 +120,21 @@ function init()
             {
                 gotRed = false;
                 addLevel(Color.Red);
+                scene.remove(hudLeaves[0]);
             }
         }else if( keyboard.pressed('g')){
             if (gotGreen)
             {
                 gotGreen = false;
                 addLevel(Color.Green);
+                scene.remove(hudLeaves[1]);
             }
         }else if( keyboard.pressed('y')){
             if (gotYellow)
             {
                 gotYellow = false;
                 addLevel(Color.Yellow);
+                scene.remove(hudLeaves[2]);
             }
         }
 
@@ -193,6 +201,26 @@ function createBackground() {
     scene.add(bgMesh);
 }
 
+function createHUDLeaves() {
+    var leafRTexture = THREE.ImageUtils.loadTexture('../assets/Leaf Assets/special_3.png');
+    var leafGTexture = THREE.ImageUtils.loadTexture('../assets/Leaf Assets/green_3.png');
+    var leafYTexture = THREE.ImageUtils.loadTexture('../assets/Leaf Assets/dead_3.png');
+    var leafRMaterial = new THREE.MeshBasicMaterial({map: leafRTexture, transparent: true});
+    var leafGMaterial = new THREE.MeshBasicMaterial({map: leafGTexture, transparent: true});
+    var leafYMaterial = new THREE.MeshBasicMaterial({map: leafYTexture, transparent: true});
+    var leafRGeometry = new THREE.PlaneGeometry(1, 1);
+    var leafGGeometry = new THREE.PlaneGeometry(1, 1);
+    var leafYGeometry = new THREE.PlaneGeometry(1, 1);
+    leafRMesh = new THREE.Mesh(leafRGeometry, leafRMaterial);
+    leafGMesh = new THREE.Mesh(leafGGeometry, leafGMaterial);
+    leafYMesh = new THREE.Mesh(leafYGeometry, leafYMaterial);
+
+    hudLeaves = [];
+    hudLeaves.push(leafRMesh);
+    hudLeaves.push(leafGMesh);
+    hudLeaves.push(leafYMesh);
+}
+
 function addLevel(color) {
     var terrain = getTerrain(level, lastElevation, color);
 
@@ -215,8 +243,6 @@ function addLevel(color) {
     }
 
     addLeaves(newLeaves);
-
-
     ++level;
 }
 
@@ -260,9 +286,9 @@ function pickUpItems() {
 
     switch(leaf.color)
     {
-        case Color.Red: gotRed = true; break;
-        case Color.Green: gotGreen = true; break;
-        case Color.Yellow: gotYellow = true; break;
+        case Color.Red: gotRed = true; scene.add(hudLeaves[0]); break;
+        case Color.Green: gotGreen = true; scene.add(hudLeaves[1]); break;
+        case Color.Yellow: gotYellow = true; scene.add(hudLeaves[2]); break;
     }
 
     scene.remove(leaf.t3);
@@ -273,6 +299,9 @@ var check = true;
 
 function populateTerrain(terrain) {
 
+    var groundTexture = THREE.ImageUtils.loadTexture('../assets/FINALTEXTURE.png');
+    var groundMaterial = new THREE.MeshBasicMaterial( { map: groundTexture, transparent: true} );
+    
     for (var i = 0; i < terrain.length; ++i) {
 
             var tile = terrain[i]
@@ -296,8 +325,20 @@ function populateTerrain(terrain) {
             geometry.vertices[7].x = tile[0].x
             geometry.vertices[7].y = tile[0].y
 
-            var material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
+            geometry.computeFaceNormals();
+            geometry.computeVertexNormals();
+            var xxx = geometry.faces.length;
+            var yyy = geometry.faces[0].vertexNormals.length;
+//        
+            for(var ii = 0; ii < xxx; ii++)
+                for(var jj = 0; jj < yyy; jj++)
+                    //console.log(ii , jj);
+                    geometry.faces[ii].vertexNormals[jj]=geometry.faces[ii].normal;
+
+//        geometry.normalsNeedUpdate = true;
+        var material = new THREE.MeshPhongMaterial( { color: 0x00ff00 } );
             var mesh = new THREE.Mesh( geometry, material );
+
 
             scene.add( mesh );
 
@@ -319,6 +360,7 @@ function populateTerrain(terrain) {
         fixDef.shape.SetAsArray(vertices, vertices.length);
         //fixDef.shape.m_radius = 1;
 
+        console.log(fixDef)
         world.CreateBody(bodyDef).CreateFixture(fixDef);
 
     }
@@ -338,15 +380,24 @@ function render() {
     var body = player_fixture.GetBody().GetDefinition();
 
 	if(check) {
+        console.debug(t3player.position);
+        console.debug(body.position);
 
 		check = false;
 	}
 	t3player.position.x = body.position.x;
 	t3player.position.y = body.position.y;
     camera.position.x = t3player.position.x;
-	camera.position.y = t3player.position.y + 1;
+	camera.position.y = t3player.position.y +1;
     bgMesh.position.x = camera.position.x;
     bgMesh.position.y = camera.position.y;
+
+    hudLeaves[0].position.x = camera.position.x - 7;
+    hudLeaves[0].position.y = camera.position.y + 3;
+    hudLeaves[1].position.x = camera.position.x - 6;
+    hudLeaves[1].position.y = camera.position.y + 3;
+    hudLeaves[2].position.x = camera.position.x - 5;
+    hudLeaves[2].position.y = camera.position.y + 3;
 
 	// End of physics update
 
@@ -482,8 +533,9 @@ function getLeafList(terrainArray)
         leaf = getLeafPos(leaf, targetBlock);
         outLeafList.push(leaf);
     }
+    console.log(outLeafList);
     return outLeafList;
-}
+    }
 
 function getLeafPos(leaf, targetBlock)
 {
@@ -491,5 +543,6 @@ function getLeafPos(leaf, targetBlock)
         x:(targetBlock[2].x + targetBlock[3].x)/2,
         y:(targetBlock[2].y + targetBlock[3].y)/2 + 1,
     };
+    console.log(leaf.leafPos);
     return leaf;
 }
