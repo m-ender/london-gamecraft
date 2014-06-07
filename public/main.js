@@ -241,8 +241,6 @@ function addLevel(color) {
     }
 
     addLeaves(newLeaves);
-
-
     ++level;
 }
 
@@ -321,6 +319,7 @@ function populateTerrain(terrain) {
             geometry.vertices[6].y = tile[0].y
             geometry.vertices[7].x = tile[0].x
             geometry.vertices[7].y = tile[0].y
+            console.debug(geometry)
 
             var material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
             var mesh = new THREE.Mesh( geometry, material );
@@ -345,6 +344,7 @@ function populateTerrain(terrain) {
         fixDef.shape.SetAsArray(vertices, vertices.length);
         //fixDef.shape.m_radius = 1;
 
+        console.log(fixDef)
         world.CreateBody(bodyDef).CreateFixture(fixDef);
 
     }
@@ -364,13 +364,15 @@ function render() {
     var body = player_fixture.GetBody().GetDefinition();
 
 	if(check) {
+        console.debug(t3player.position);
+        console.debug(body.position);
 
 		check = false;
 	}
 	t3player.position.x = body.position.x;
 	t3player.position.y = body.position.y;
     camera.position.x = t3player.position.x;
-	camera.position.y = t3player.position.y + 1;
+	camera.position.y = t3player.position.y +1;
     bgMesh.position.x = camera.position.x;
     bgMesh.position.y = camera.position.y;
 
@@ -515,8 +517,9 @@ function getLeafList(terrainArray)
         leaf = getLeafPos(leaf, targetBlock);
         outLeafList.push(leaf);
     }
+    console.log(outLeafList);
     return outLeafList;
-}
+    }
 
 function getLeafPos(leaf, targetBlock)
 {
@@ -524,5 +527,6 @@ function getLeafPos(leaf, targetBlock)
         x:(targetBlock[2].x + targetBlock[3].x)/2,
         y:(targetBlock[2].y + targetBlock[3].y)/2 + 1,
     };
+    console.log(leaf.leafPos);
     return leaf;
 }
