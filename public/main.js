@@ -5,6 +5,14 @@ var camera;
 var renderer;
 
 var t3player;
+// Box2D
+var b2Vec2 = Box2D.Common.Math.b2Vec2;
+var b2World = Box2D.Dynamics.b2World;
+var b2FixtureDef = Box2D.Dynamics.b2FixtureDef;
+var b2BodyDef = Box2D.Dynamics.b2BodyDef;
+var b2Body = Box2D.Dynamics.b2Body;
+var b2PolygonShape = Box2D.Collision.Shapes.b2PolygonShape;
+
 
 var world;
 var player_fixture;
@@ -30,11 +38,11 @@ var seed = 123;
 
 function init()
 {
-
+var bodyDef = new b2BodyDef;
     scene = new THREE.Scene();
     camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
     camera.position.x = 110
-	camera.position.y = 0
+	camera.position.y = 1
 	camera.position.z = 10
 	camera.lookAt(new THREE.Vector3(110,0,0))
 
@@ -58,13 +66,7 @@ function init()
 
     camera.position.z = 5;
 
-	// Box2D
-	var b2Vec2 = Box2D.Common.Math.b2Vec2;
-	var b2World = Box2D.Dynamics.b2World;
-	var b2FixtureDef = Box2D.Dynamics.b2FixtureDef;
-	var b2BodyDef = Box2D.Dynamics.b2BodyDef;
-	var b2Body = Box2D.Dynamics.b2Body;
-	var b2PolygonShape = Box2D.Collision.Shapes.b2PolygonShape;
+
 
 	world = new b2World(
         new b2Vec2(0, -50),    //gravity
@@ -76,7 +78,7 @@ function init()
 	fixDef.friction = 0.5;
 	fixDef.restitution = 0.0;
 
-	var bodyDef = new b2BodyDef;
+	
 
 	//create b2ground
 	bodyDef.type = b2Body.b2_staticBody;
@@ -86,6 +88,9 @@ function init()
 	fixDef.shape.SetAsBox(0.5,0.5);
 	world.CreateBody(bodyDef).CreateFixture(fixDef);
 
+    console.debug(fixDef)
+    
+    
 	// b2player
 	bodyDef.type = b2Body.b2_dynamicBody;
 	fixDef.shape = new b2PolygonShape;
@@ -181,7 +186,9 @@ function createBackground() {
 var check = true;
 
 function populateTerrain(terrain) {
+    
     for (var i = 0; i < terrain.length; ++i) {
+        
             var tile = terrain[i]
             var geometry = new THREE.BoxGeometry(1,1,1)
             
@@ -208,6 +215,28 @@ function populateTerrain(terrain) {
             var mesh = new THREE.Mesh( geometry, material );
 
             scene.add( mesh );
+        
+        var bodyDef = new b2BodyDef;
+        var fixDef = new b2FixtureDef;
+        bodyDef.type = b2Body.b2_staticBody;
+        fixDef.shape = new b2PolygonShape;
+        
+        var vertices = [];
+        for(var v = 0; v < tile.length; v++) {
+        
+            var vert = new b2Vec2()
+            
+            vert.Set(tile[v].x, tile[v].y);
+            
+            vertices.push(vert);
+        }
+        
+        fixDef.shape.SetAsArray(vertices, vertices.length);
+        fixDef.shape.m_radius = 1;
+        
+        console.log(fixDef)
+        world.CreateBody(bodyDef).CreateFixture(fixDef);
+
     }
 
 }
@@ -232,6 +261,9 @@ function render() {
 	}
 	t3player.position.x = body.position.x;
 	t3player.position.y = body.position.y;
+    camera.position.x = t3player.position.x
+	camera.position.y = t3player.position.y
+
 
 	// End of physics update
 
