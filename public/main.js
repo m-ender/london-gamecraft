@@ -23,8 +23,10 @@ var Color = {
     Red: "Red",
 };
 
+
 var keyboard;
 var updateFcts	= [];
+var seed = 123;
 
 function init()
 {
@@ -145,9 +147,13 @@ function init()
 	})
 	// End of keyboard code
 
+    console.log(getTerrain(1, Color.Red));
+    terrain = getTerrain(2, Color.Blue);
+    console.log(terrain);
 
     lastTime = Date.now();
     render();
+    getLeafList(terrain);
 }
 
 var check = true
@@ -196,22 +202,127 @@ function render() {
 
 }
 
-function getTerrain(nLevel, color)
+function getTerrain(nLevel, startHeight, color)
 {
-    var xLeft = (nLevel-1)*levelWidth;
-    var xRight = nLevel * levelWidth;
-    return [
-        [
-            {x: xLeft, y: 1},
-            {x: xLeft, y: 0},
-            {x: xLeft + levelWidth/2, y: 0},
-            {x: xLeft + levelWidth/2, y: 1},
-        ],
-        [
-            {x: xLeft + levelWidth/2, y: 1},
-            {x: xLeft + levelWidth/2, y: 0},
-            {x: xRight, y: 0},
-            {x: xRight, y: 1},
-        ],
-    ];
+    if (!nLevel)
+    {
+        return [
+            [
+                { x: 0, y: -100 },
+                { x: levelWidth, y: -100 },
+                { x: levelWidth, y: startHeight },
+                { x: 0, y: startHeight },
+            ]
+        ];
+    }
+
+    var xLeft = nLevel*levelWidth;
+    var xRight = (nLevel+1) * levelWidth;
+
+    var rng = { random: new Math.seedrandom(seed + nLevel) };
+    var simplex = new SimplexNoise(rng);
+
+    var segments = 50;
+
+    var samples = [xLeft, xRight];
+
+    var i;
+    for (i = 0; i < segments-1; ++i)
+    {
+        samples.push(rng.random() * levelWidth + xLeft);
+    }
+
+    samples.sort(function(a,b){return (a<b)?-1:(a>b)?1:0;});
+
+    var relaxedSamples = [xLeft];
+
+    for (i = 1; i < segments; ++i)
+    {
+        relaxedSamples.push((samples[i-1] + samples[i] + samples[i+1])/3);
+    }
+
+    relaxedSamples.push(xRight);
+
+    console.log(relaxedSamples);
+
+    var heightMap = [];
+
+    var levelType = {
+        Red: {
+            amplitudes: [20, 5, 2.5],
+            frequency: [5, 7, 13],
+        },
+        Green: {
+            amplitudes: [2, 1, 0.5],
+            frequency: [5, 7, 13],
+        },
+        Blue: {
+            amplitudes: [10, 4, 2],
+            frequency: [5, 7, 13],
+        },
+    };
+
+    var amplitudes = levelType[color].amplitudes;
+    var frequency = levelType[color].frequency;
+
+    var phase = rng.random() * 1000;
+    for (i = 0; i <= segments; ++i)
+    {
+        var x = relaxedSamples[i];
+        var t = (x - xLeft)/levelWidth;
+        var height = simplex.noise(0, x) * Math.min(1,amplitudes[amplitudes.length-1]);
+        for (var j = 0; j < amplitudes.length; ++j)
+            height += Math.sin(frequency[j]*x / levelWidth + (j+1)*phase)*amplitudes[j];
+
+        heightMap.push(height);
+    }
+
+    for (i = segments; i >= 0; --i)
+        heightMap[i] += -heightMap[0] + startHeight;
+
+    var polygons = [];
+    for (i = 0; i < segments; ++i)
+    {
+        polygons.push([
+            { x: relaxedSamples[i], y: -100},
+            { x: relaxedSamples[i+1], y: -100},
+            { x: relaxedSamples[i+1], y: heightMap[i+1]},
+            { x: relaxedSamples[i], y: heightMap[i]},
+        ]);
+    }
+
+    console.log(polygons);
+
+    return polygons;
+}
+
+function getLeafList(terrainArray)
+{
+    var len = terrainArray.length;
+    randList = [Math.floor((Math.random()*len/3-1) + 1),
+    Math.floor((Math.random()*len/3-1) + len/3),
+    Math.floor((Math.random()*len/3-1) + 2*len/3)]
+    leafList = ["red","green", "blue"];
+    outLeafList = []
+    while(randList.length != 0)
+    {
+        var selectIndex = Math.floor((Math.random()*leafList.length));
+        var selectedLeaf = leafList[selectIndex];
+        targetBlock = terrainArray[randList.pop()];
+        leaf = {color: selectedLeaf, leafPos:{x:0,y:0}};
+        leaf = getLeafPos(leaf, targetBlock);
+        outLeafList.push(leaf);
+    }
+    console.log(outLeafList);
+    return outLeafList
+    }
+    
+function getLeafPos(leaf, targetBlock)
+{
+    leaf.leafPos = {
+        x:(targetBlock[2].x + targetBlock[3].x)/2,
+        y:(targetBlock[2].y + targetBlock[3].y)/2,
+    };
+    console.log(leaf.leafPos);
+    return leaf
 }
