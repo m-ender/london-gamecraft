@@ -120,13 +120,13 @@ function init()
             if (gotGreen)
             {
                 gotGreen = false;
-                addLevel(Color.Red);
+                addLevel(Color.Green);
             }
         }else if( keyboard.pressed('y')){
             if (gotYellow)
             {
                 gotYellow = false;
-                addLevel(Color.Red);
+                addLevel(Color.Yellow);
             }
         }
 
