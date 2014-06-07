@@ -77,10 +77,22 @@ function render() {
     }
 }
 
-function getTerrain(nLevel, color)
+function getTerrain(nLevel, startHeight, color)
 {
-    var xLeft = (nLevel-1)*levelWidth;
-    var xRight = nLevel * levelWidth;
+    if (!nLevel)
+    {
+        return [
+            [
+                { x: 0, y: -100 },
+                { x: levelWidth, y: -100 },
+                { x: levelWidth, y: startHeight },
+                { x: 0, y: startHeight },
+            ]
+        ];
+    }
+
+    var xLeft = nLevel*levelWidth;
+    var xRight = (nLevel+1) * levelWidth;
 
     var rng = { random: new Math.seedrandom(seed + nLevel) };
     var simplex = new SimplexNoise(rng);
@@ -106,25 +118,55 @@ function getTerrain(nLevel, color)
 
     relaxedSamples.push(xRight);
 
-    var heightMap = [0];
+    console.log(relaxedSamples);
 
-    for (i = 1; i < segments; ++i)
+    var heightMap = [];
+
+    var levelType = {
+        Red: {
+            amplitudes: [20, 5, 2.5],
+            frequency: [5, 7, 13],
+        },
+        Green: {
+            amplitudes: [2, 1, 0.5],
+            frequency: [5, 7, 13],
+        },
+        Blue: {
+            amplitudes: [10, 4, 2],
+            frequency: [5, 7, 13],
+        },
+    };
+
+    var amplitudes = levelType[color].amplitudes;
+    var frequency = levelType[color].frequency;
+
+    var phase = rng.random() * 1000;
+    for (i = 0; i <= segments; ++i)
     {
-        heightMap.push(simplex.noise(0, relaxedSamples[i]));
+        var x = relaxedSamples[i];
+        var t = (x - xLeft)/levelWidth;
+        var height = simplex.noise(0, x) * Math.min(1,amplitudes[amplitudes.length-1]);
+        for (var j = 0; j < amplitudes.length; ++j)
+            height += Math.sin(frequency[j]*x / levelWidth + (j+1)*phase)*amplitudes[j];
+
+        heightMap.push(height);
     }
 
-    heightMap.push(0);
+    for (i = segments; i >= 0; --i)
+        heightMap[i] += -heightMap[0] + startHeight;
 
     var polygons = [];
     for (i = 0; i < segments; ++i)
     {
         polygons.push([
-            { x: relaxedSamples[i], y: -10},
-            { x: relaxedSamples[i+1], y: -10},
+            { x: relaxedSamples[i], y: -100},
+            { x: relaxedSamples[i+1], y: -100},
             { x: relaxedSamples[i+1], y: heightMap[i+1]},
             { x: relaxedSamples[i], y: heightMap[i]},
         ]);
     }
+
+    console.log(polygons);
 
     return polygons;
 }
