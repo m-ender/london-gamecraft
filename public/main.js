@@ -50,8 +50,8 @@ function init()
     // var box = new b2PolygonShape();
     // box.SetAsBox(0.5,0.5);
 
-    console.log(getTerrain(1, Color.Red));
-    terrain = getTerrain(2, Color.Blue);
+    console.log(getTerrain(1, 0, Color.Red));
+    terrain = getTerrain(2, 0, Color.Blue);
     console.log(terrain);
 
     lastTime = Date.now();
@@ -178,9 +178,9 @@ function getLeafList(terrainArray)
     var len = terrainArray.length;
     randList = [Math.floor((Math.random()*len/3-1) + 1),
     Math.floor((Math.random()*len/3-1) + len/3),
-    Math.floor((Math.random()*len/3-1) + 2*len/3)]
+    Math.floor((Math.random()*len/3-1) + 2*len/3)];
     leafList = ["red","green", "blue"];
-    outLeafList = []
+    outLeafList = [];
     while(randList.length != 0)
     {
         var selectIndex = Math.floor((Math.random()*leafList.length));
@@ -191,9 +191,9 @@ function getLeafList(terrainArray)
         outLeafList.push(leaf);
     }
     console.log(outLeafList);
-    return outLeafList
+    return outLeafList;
     }
-    
+
 function getLeafPos(leaf, targetBlock)
 {
     leaf.leafPos = {
@@ -201,5 +201,5 @@ function getLeafPos(leaf, targetBlock)
         y:(targetBlock[2].y + targetBlock[3].y)/2,
     };
     console.log(leaf.leafPos);
-    return leaf
+    return leaf;
 }
