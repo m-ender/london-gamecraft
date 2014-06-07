@@ -20,3 +20,8 @@ function soundBites(color){
         soundBite.play();
     }
 }
+
+function audioInit(){
+    var track1 = document.getElementById("track1");
+    track1.play();
+}

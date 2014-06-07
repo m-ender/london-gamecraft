@@ -1,4 +1,4 @@
-    window.onload = init;
+window.onload = init;
 
 var scene;
 var camera;
@@ -69,7 +69,7 @@ function init()
 
     createBackground();
 
-
+    audioInit();
 
 	world = new b2World(
         new b2Vec2(0, -50),    //gravity
