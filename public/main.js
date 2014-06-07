@@ -108,7 +108,27 @@ function init()
 			vector = new b2Vec2(-1, 0);
 		}else if( keyboard.pressed('right') ){
 			vector = new b2Vec2(1, 0);
-		}
+		}else if( keyboard.pressed('e')){
+            pickUpItems();
+        }else if( keyboard.pressed('r')){
+            if (gotRed)
+            {
+                gotRed = false;
+                addLevel(Color.Red);
+            }
+        }else if( keyboard.pressed('g')){
+            if (gotGreen)
+            {
+                gotGreen = false;
+                addLevel(Color.Red);
+            }
+        }else if( keyboard.pressed('y')){
+            if (gotYellow)
+            {
+                gotYellow = false;
+                addLevel(Color.Red);
+            }
+        }
 
 		var foo = player_fixture.GetBody().GetWorldCenter();
 		//b2player.ApplyImpulse(vector,foo);
@@ -200,8 +220,53 @@ function addLevel(color) {
     ++level;
 }
 
-function addLeaves() {
+function addLeaves(newLeaves) {
+    var prefixes = {
+        Green: 'green',
+        Red: 'special',
+        Yellow: 'dead',
+    };
 
+    for (var i = 0; i < newLeaves.length; ++i)
+    {
+        var leaf = newLeaves[i];
+
+
+        var leafTexture = THREE.ImageUtils.loadTexture('../assets/Leaf Assets/' + prefixes[leaf.color] + '_3.png');
+        var leafMaterial = new THREE.MeshBasicMaterial( { map: leafTexture, transparent: true} );
+        var leafGeometry = new THREE.PlaneGeometry(1,1,1);
+        t3leaf = new THREE.Mesh( leafGeometry, leafMaterial );
+        t3leaf.position.x = leaf.leafPos.x;
+        t3leaf.position.y = leaf.leafPos.y;
+
+        leaf.t3 = t3leaf;
+        scene.add( t3leaf );
+
+        leaves.push(leaf);
+    }
+}
+
+function pickUpItems() {
+    var leaf;
+    for (var i = 0; i < leaves.length; ++i)
+    {
+        leaf = leaves[i];
+        if (Math.abs(leaf.leafPos.x - t3player.position.x) < 1 &&
+            Math.abs(leaf.leafPos.y - t3player.position.y) < 1)
+            break;
+    }
+
+    if(i >= leaves.length) return;
+
+    switch(leaf.color)
+    {
+        case Color.Red: gotRed = true; break;
+        case Color.Green: gotGreen = true; break;
+        case Color.Yellow: gotYellow = true; break;
+    }
+
+    scene.remove(leaf.t3);
+    leaves.splice(i,1);
 }
 
 var check = true;
@@ -424,7 +489,7 @@ function getLeafPos(leaf, targetBlock)
 {
     leaf.leafPos = {
         x:(targetBlock[2].x + targetBlock[3].x)/2,
-        y:(targetBlock[2].y + targetBlock[3].y)/2,
+        y:(targetBlock[2].y + targetBlock[3].y)/2 + 1,
     };
     return leaf;
 }
