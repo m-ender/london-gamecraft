@@ -41,7 +41,6 @@ var updateFcts	= [];
 var seed = new Date()+[];
 
 var level = 0;
-var color;
 var lastElevation = 0;
 
 var leaves = [];
@@ -120,6 +119,7 @@ function init()
             {
                 gotRed = false;
                 addLevel(Color.Red);
+                audioSetColor(Color.Red);
                 scene.remove(hudLeaves[0]);
             }
         }else if( keyboard.pressed('g')){
@@ -127,6 +127,7 @@ function init()
             {
                 gotGreen = false;
                 addLevel(Color.Green);
+                audioSetColor(Color.Green);
                 scene.remove(hudLeaves[1]);
             }
         }else if( keyboard.pressed('y')){
@@ -134,6 +135,7 @@ function init()
             {
                 gotYellow = false;
                 addLevel(Color.Yellow);
+                audioSetColor(Color.Yellow);
                 scene.remove(hudLeaves[2]);
             }
         }
@@ -370,7 +372,9 @@ function populateTerrain(terrain) {
 function render() {
     requestAnimationFrame(render);
 
-	// Physics update
+    soundBites();
+	
+    // Physics update
 	world.Step(
 	1 / 60,   //frame-rate
 	10,       //velocity iterations
