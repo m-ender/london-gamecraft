@@ -6,6 +6,8 @@ var renderer;
 
 var cube;
 
+var world;
+
 // Timing
 // We need these to fix the framerate
 var fps = 60;
@@ -28,6 +30,16 @@ function init()
 
     camera.position.z = 5;
 
+    // var worldAABB = new b2AABB();
+    // worldAABB.minVertex.Set(-1000, -1000);
+    // worldAABB.maxVertex.Set(1000, 1000);
+    // var gravity = new b2Vec2(0, 10000);
+    // var doSleep = true;
+    // world = new b2World(worldAABB, gravity, doSleep);
+
+    // var box = new b2PolygonShape();
+    // box.SetAsBox(0.5,0.5);
+
     lastTime = Date.now();
     render();
 }
@@ -47,9 +59,6 @@ function render() {
         var steps = Math.floor(dTime / interval);
 
         dTime = steps * interval / 1000; // Now dTime is in seconds
-
-        cube.rotation.x += dTime;
-        cube.rotation.y += dTime;
 
         renderer.render(scene, camera);
     }
