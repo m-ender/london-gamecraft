@@ -42,6 +42,12 @@ var level = 0;
 var color;
 var lastElevation = 0;
 
+var leaves = [];
+
+var gotYellow = false;
+var gotGreen = false;
+var gotRed = false;
+
 function init()
 {
     scene = new THREE.Scene();
@@ -161,10 +167,28 @@ function addLevel(color) {
 
     populateTerrain(terrain);
 
-    if (level > 0)
-        getLeafList(terrain);
+    var newLeaves;
+    if (level === 0)
+    {
+        newLeaves = [{
+            color: Color.Green,
+            leafPos: { x: 95, y: 1 },
+        }];
+    }
+    else
+    {
+        newLeaves = getLeafList(terrain);
+        console.log(newLeaves);
+    }
+
+    addLeaves(newLeaves);
+
 
     ++level;
+}
+
+function addLeaves() {
+
 }
 
 var check = true;
@@ -193,7 +217,6 @@ function populateTerrain(terrain) {
             geometry.vertices[6].y = tile[0].y
             geometry.vertices[7].x = tile[0].x
             geometry.vertices[7].y = tile[0].y
-            console.debug(geometry)
 
             var material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
             var mesh = new THREE.Mesh( geometry, material );
@@ -218,7 +241,6 @@ function populateTerrain(terrain) {
         fixDef.shape.SetAsArray(vertices, vertices.length);
         //fixDef.shape.m_radius = 1;
 
-        console.log(fixDef)
         world.CreateBody(bodyDef).CreateFixture(fixDef);
 
     }
@@ -238,15 +260,13 @@ function render() {
     var body = player_fixture.GetBody().GetDefinition();
 
 	if(check) {
-        console.debug(t3player.position);
-        console.debug(body.position);
 
 		check = false;
 	}
 	t3player.position.x = body.position.x;
 	t3player.position.y = body.position.y;
     camera.position.x = t3player.position.x;
-	camera.position.y = t3player.position.y +1;
+	camera.position.y = t3player.position.y + 1;
     bgMesh.position.x = camera.position.x;
     bgMesh.position.y = camera.position.y;
 
@@ -373,9 +393,9 @@ function getLeafList(terrainArray)
     randList = [Math.floor((Math.random()*len/3-1) + 1),
     Math.floor((Math.random()*len/3-1) + len/3),
     Math.floor((Math.random()*len/3-1) + 2*len/3)];
-    leafList = ["red","green", "blue"];
+    leafList = [Color.Red,Color.Green, Color.Yellow];
     outLeafList = [];
-    while(randList.length != 0)
+    while(randList.length !== 0)
     {
         var selectIndex = Math.floor((Math.random()*leafList.length));
         var selectedLeaf = leafList[selectIndex];
@@ -384,9 +404,8 @@ function getLeafList(terrainArray)
         leaf = getLeafPos(leaf, targetBlock);
         outLeafList.push(leaf);
     }
-    console.log(outLeafList);
     return outLeafList;
-    }
+}
 
 function getLeafPos(leaf, targetBlock)
 {
@@ -394,6 +413,5 @@ function getLeafPos(leaf, targetBlock)
         x:(targetBlock[2].x + targetBlock[3].x)/2,
         y:(targetBlock[2].y + targetBlock[3].y)/2,
     };
-    console.log(leaf.leafPos);
     return leaf;
 }
