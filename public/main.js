@@ -33,44 +33,42 @@ function init()
 
     scene = new THREE.Scene();
     camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
-	camera.position.x = 110
+    camera.position.x = 110
 	camera.position.y = 0
 	camera.position.z = 10
 	camera.lookAt(new THREE.Vector3(110,0,0))
+
 
     renderer = new THREE.WebGLRenderer();
     renderer.setSize( window.innerWidth * 0.7, window.innerHeight * 0.7);
     document.body.appendChild( renderer.domElement );
 
-    var geometry = new THREE.BoxGeometry(1,1,1);
-    var material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
-    t3player = new THREE.Mesh( geometry, material );
-    t3player.position.y = 50
-    scene.add( t3player );
-	var b2player
+    createPlayer();
+	var b2player;
 
 	//var t3ground = new THREE.Mesh(new THREE.BoxGeometry(100,1,100), new THREE.MeshBasicMaterial({color: 0x0000ff}));
 	var t3ground = new THREE.Mesh( new THREE.BoxGeometry(1,1,1), new THREE.MeshBasicMaterial( { color: 0x0000ff } ) );
 
-
 //	t3ground.scale.x = 500;
 //	t3ground.scale.y = 500;
-	t3ground.position.y = -3;
+	t3ground.position.y = 0;
 	scene.add(t3ground);
+
+    createBackground();
 
     camera.position.z = 5;
 
 	// Box2D
-	var b2Vec2 = Box2D.Common.Math.b2Vec2
-	, b2World = Box2D.Dynamics.b2World
-	, b2FixtureDef = Box2D.Dynamics.b2FixtureDef
-	, b2BodyDef = Box2D.Dynamics.b2BodyDef
-	, b2Body = Box2D.Dynamics.b2Body
-	, b2PolygonShape = Box2D.Collision.Shapes.b2PolygonShape;
+	var b2Vec2 = Box2D.Common.Math.b2Vec2;
+	var b2World = Box2D.Dynamics.b2World;
+	var b2FixtureDef = Box2D.Dynamics.b2FixtureDef;
+	var b2BodyDef = Box2D.Dynamics.b2BodyDef;
+	var b2Body = Box2D.Dynamics.b2Body;
+	var b2PolygonShape = Box2D.Collision.Shapes.b2PolygonShape;
 
 	world = new b2World(
-	new b2Vec2(0, -50),    //gravity
-	true                  //allow sleep
+        new b2Vec2(0, -50),    //gravity
+        true                  //allow sleep
 	);
 
 	var fixDef = new b2FixtureDef;
@@ -101,10 +99,6 @@ function init()
 
 	// End of Box2D
 
-    //console.log(getTerrain(1, 0, Color.Red));
-    //console.log(getTerrain(2, 0, Color.Blue));
-
-
 	// Keyboard code
 	keyboard	= new THREEx.KeyboardState(renderer.domElement);
 	renderer.domElement.setAttribute("tabIndex", "0");
@@ -114,13 +108,11 @@ function init()
 		var vector = new b2Vec2(0, 0);
 
 		if( keyboard.pressed('left') ){
-			vector = new b2Vec2(-1, 0)
+			vector = new b2Vec2(-1, 0);
 		}else if( keyboard.pressed('right') ){
-			vector = new b2Vec2(1, 0)
+			vector = new b2Vec2(1, 0);
 		}
 
-//		console.log(b2player.GetWorldCenter());
-//		console.log(player_fixture);
 		var foo = player_fixture.GetBody().GetWorldCenter();
 		//b2player.ApplyImpulse(vector,foo);
         player_fixture.GetBody().ApplyImpulse(vector,foo);
@@ -132,23 +124,24 @@ function init()
 //		}
 
 
-	})
+	});
 
 	// only on keydown
 	keyboard.domElement.addEventListener('keydown', function(event){
-		var vector
+		var vector;
 //		if( keyboard.eventMatches(event, 'w') )
 //
 //		if( keyboard.eventMatches(event, 's') )	t3player.scale.y	*= 2
-	})
+	});
 	// only on keyup
 	keyboard.domElement.addEventListener('keyup', function(event){
 		//if( keyboard.eventMatches(event, 'a') )	t3player.scale.x	*= 2
 		//if( keyboard.eventMatches(event, 'd') )	t3player.scale.x	/= 2
-	})
+	});
 	// End of keyboard code
 
-    console.log(getTerrain(1,0, Color.Red));
+
+    console.log(getTerrain(1, 0, Color.Red));
     terrain = getTerrain(2, 0, Color.Blue);
     console.log(terrain);
 
@@ -166,7 +159,26 @@ function init()
     
 }
 
-var check = true
+function createPlayer() {
+    var playerTexture = THREE.ImageUtils.loadTexture('../assets/Character_for_testing.png');
+    var playerMaterial = new THREE.MeshBasicMaterial( { map: playerTexture, transparent: true} );
+    var playerGeometry = new THREE.PlaneGeometry(1,4.5/4,1);
+    t3player = new THREE.Mesh( playerGeometry, playerMaterial );
+    t3player.position.x = 105;
+    t3player.position.y = 10;
+    scene.add( t3player );
+}
+
+function createBackground() {
+    var bgTexture = THREE.ImageUtils.loadTexture('../assets/reducedbackground.png');
+    var bgMaterial = new THREE.MeshBasicMaterial({map: bgTexture});
+    var bgGeometry = new THREE.PlaneGeometry(200, 100);
+    var bgMesh = new THREE.Mesh(bgGeometry, bgMaterial);
+    bgMesh.position.z = -40;
+    scene.add(bgMesh);
+}
+
+var check = true;
 
 function populateTerrain(terrain) {
     for (var i = 0; i < terrain.length; ++i) {
@@ -213,10 +225,10 @@ function render() {
     var body = player_fixture.GetBody().GetDefinition();
 
 	if(check) {
-	console.debug(t3player.position)
-	console.debug(body.position)
+        console.debug(t3player.position);
+        console.debug(body.position);
 
-		check = false
+		check = false;
 	}
 	t3player.position.x = body.position.x;
 	t3player.position.y = body.position.y;
@@ -239,7 +251,7 @@ function render() {
 
 		updateFcts.forEach(function(updateFn){
 			updateFn(dTime);
-		})
+		});
     }
 
 }
@@ -343,9 +355,9 @@ function getLeafList(terrainArray)
     var len = terrainArray.length;
     randList = [Math.floor((Math.random()*len/3-1) + 1),
     Math.floor((Math.random()*len/3-1) + len/3),
-    Math.floor((Math.random()*len/3-1) + 2*len/3)]
+    Math.floor((Math.random()*len/3-1) + 2*len/3)];
     leafList = ["red","green", "blue"];
-    outLeafList = []
+    outLeafList = [];
     while(randList.length != 0)
     {
         var selectIndex = Math.floor((Math.random()*leafList.length));
@@ -356,9 +368,9 @@ function getLeafList(terrainArray)
         outLeafList.push(leaf);
     }
     console.log(outLeafList);
-    return outLeafList
+    return outLeafList;
     }
-    
+
 function getLeafPos(leaf, targetBlock)
 {
     leaf.leafPos = {
@@ -366,5 +378,5 @@ function getLeafPos(leaf, targetBlock)
         y:(targetBlock[2].y + targetBlock[3].y)/2,
     };
     console.log(leaf.leafPos);
-    return leaf
+    return leaf;
 }

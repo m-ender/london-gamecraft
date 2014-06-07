@@ -1,0 +1,46 @@
+<html>
+	<head>
+		<title>My first Three.js app</title>
+		<style>canvas { width: 100%; height: 100% }</style>
+	</head>
+	<body>
+		<script src="public/three.min.js"></script>
+		<script src='public/threex.KeyboardState.js'></script>
+
+		<script>
+			var keyboard = new THREEx.KeyboardState();
+			function render()
+			{
+				requestAnimationFrame(render);
+				if(keyboard.pressed("1")){
+					track1.currentTime = 0;
+					track1.play();
+					track2.pause();
+				}
+
+				if(keyboard.pressed("2")){
+					track1.pause();
+					track2.currentTime = 0;
+					track2.play();
+				}
+			}
+			render();
+		</script>
+
+        <audio controls loop style="display:none;" id="track1" class="music">
+            <source src="public/assets/music/track 1.mp3" type="audio/mpeg" />
+            Your browser does not support the audio tag.
+        </audio>
+        <audio controls loop style="display:none;" id="track2" class="music">
+            <source src="public/assets/music/track 2.mp3" type="audio/mpeg" />
+            Your browser does not support the audio tag.
+        </audio>
+        <script>
+        	var track1 = document.getElementById("track1");
+			var track2 = document.getElementById("track2");
+        	track1.play();
+			track2.pause();
+		</script>
+
+	</body>
+</html>
