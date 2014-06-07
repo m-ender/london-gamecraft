@@ -1,10 +1,12 @@
-window.onload = init;
+    window.onload = init;
 
 var scene;
 var camera;
 var renderer;
 
 var t3player;
+var bgMesh;
+
 // Box2D
 var b2Vec2 = Box2D.Common.Math.b2Vec2;
 var b2World = Box2D.Dynamics.b2World;
@@ -17,6 +19,8 @@ var b2PolygonShape = Box2D.Collision.Shapes.b2PolygonShape;
 var world;
 var player_fixture;
 
+var jumped = null;
+
 // Timing
 // We need these to fix the framerate
 var fps = 60;
@@ -26,7 +30,7 @@ var lastTime;
 var levelWidth = 100;
 
 var Color = {
-    Blue: "Blue",
+    Yellow: "Yellow",
     Green: "Green",
     Red: "Red",
 };
@@ -34,17 +38,20 @@ var Color = {
 
 var keyboard;
 var updateFcts	= [];
-var seed = 123;
+var seed = new Date()+[];
+
+var level = 0;
+var color;
+var lastElevation = 0;
 
 function init()
 {
-var bodyDef = new b2BodyDef;
     scene = new THREE.Scene();
     camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
-    camera.position.x = 110
-	camera.position.y = 1
-	camera.position.z = 10
-	camera.lookAt(new THREE.Vector3(110,0,0))
+    camera.position.x = 90
+	camera.position.y = 0
+	camera.position.z = 5
+	camera.lookAt(new THREE.Vector3(90,0,0))
 
 
     renderer = new THREE.WebGLRenderer();
@@ -54,17 +61,7 @@ var bodyDef = new b2BodyDef;
     createPlayer();
 	var b2player;
 
-	//var t3ground = new THREE.Mesh(new THREE.BoxGeometry(100,1,100), new THREE.MeshBasicMaterial({color: 0x0000ff}));
-	var t3ground = new THREE.Mesh( new THREE.BoxGeometry(1,1,1), new THREE.MeshBasicMaterial( { color: 0x0000ff } ) );
-
-//	t3ground.scale.x = 500;
-//	t3ground.scale.y = 500;
-	t3ground.position.y = 0;
-	scene.add(t3ground);
-
     createBackground();
-
-    camera.position.z = 5;
 
 
 
@@ -78,19 +75,8 @@ var bodyDef = new b2BodyDef;
 	fixDef.friction = 0.5;
 	fixDef.restitution = 0.0;
 
-	
+    var bodyDef = new b2BodyDef;
 
-	//create b2ground
-	bodyDef.type = b2Body.b2_staticBody;
-	bodyDef.position.x = t3ground.position.x;
-	bodyDef.position.y = t3ground.position.y;
-	fixDef.shape = new b2PolygonShape;
-	fixDef.shape.SetAsBox(0.5,0.5);
-	world.CreateBody(bodyDef).CreateFixture(fixDef);
-
-    console.debug(fixDef)
-    
-    
 	// b2player
 	bodyDef.type = b2Body.b2_dynamicBody;
 	fixDef.shape = new b2PolygonShape;
@@ -133,7 +119,18 @@ var bodyDef = new b2BodyDef;
 
 	// only on keydown
 	keyboard.domElement.addEventListener('keydown', function(event){
-		var vector;
+        console.debug(event)
+        if(event.keyCode == 32) {
+            var ct = Date.now()
+            var jdelta = ct - jumped
+            console.debug("jump! " + jumped)
+            if(jumped == null || jdelta > 600) {
+                console.debug("just jumped: " + jdelta)
+                jumped = ct
+                var foo = player_fixture.GetBody().GetWorldCenter();
+                player_fixture.GetBody().ApplyImpulse(new b2Vec2(0, 15),foo);
+            }
+        }
 //		if( keyboard.eventMatches(event, 'w') )
 //
 //		if( keyboard.eventMatches(event, 's') )	t3player.scale.y	*= 2
@@ -145,23 +142,10 @@ var bodyDef = new b2BodyDef;
 	});
 	// End of keyboard code
 
-
-    console.log(getTerrain(1, 0, Color.Red));
-    terrain = getTerrain(2, 0, Color.Blue);
-    console.log(terrain);
-
-
-	var terrainTest = getTerrain(1,0,Color.Blue)
-	console.log(terrainTest)
-	populateTerrain(terrainTest)
-	
+    addLevel();
 
     lastTime = Date.now();
     render();
-    getLeafList(terrain);
-    
-    console.debug(scene)
-    
 }
 
 function createPlayer() {
@@ -169,8 +153,8 @@ function createPlayer() {
     var playerMaterial = new THREE.MeshBasicMaterial( { map: playerTexture, transparent: true} );
     var playerGeometry = new THREE.PlaneGeometry(1,4.5/4,1);
     t3player = new THREE.Mesh( playerGeometry, playerMaterial );
-    t3player.position.x = 105;
-    t3player.position.y = 10;
+    t3player.position.x = 90;
+    t3player.position.y = 1;
     scene.add( t3player );
 }
 
@@ -178,21 +162,34 @@ function createBackground() {
     var bgTexture = THREE.ImageUtils.loadTexture('../assets/reducedbackground.png');
     var bgMaterial = new THREE.MeshBasicMaterial({map: bgTexture});
     var bgGeometry = new THREE.PlaneGeometry(200, 100);
-    var bgMesh = new THREE.Mesh(bgGeometry, bgMaterial);
+    bgMesh = new THREE.Mesh(bgGeometry, bgMaterial);
     bgMesh.position.z = -40;
     scene.add(bgMesh);
+}
+
+function addLevel(color) {
+    var terrain = getTerrain(level, lastElevation, color);
+
+    lastElevation = terrain[terrain.length-1][2].y;
+
+    populateTerrain(terrain);
+
+    if (level > 0)
+        getLeafList(terrain);
+
+    ++level;
 }
 
 var check = true;
 
 function populateTerrain(terrain) {
-    
+
     for (var i = 0; i < terrain.length; ++i) {
-        
+
             var tile = terrain[i]
             var geometry = new THREE.BoxGeometry(1,1,1)
-            
-            
+
+
             geometry.vertices[0].x = tile[2].x
             geometry.vertices[0].y = tile[2].y
             geometry.vertices[1].x = tile[2].x
@@ -215,25 +212,25 @@ function populateTerrain(terrain) {
             var mesh = new THREE.Mesh( geometry, material );
 
             scene.add( mesh );
-        
+
         var bodyDef = new b2BodyDef;
         var fixDef = new b2FixtureDef;
         bodyDef.type = b2Body.b2_staticBody;
         fixDef.shape = new b2PolygonShape;
-        
+
         var vertices = [];
         for(var v = 0; v < tile.length; v++) {
-        
+
             var vert = new b2Vec2()
-            
+
             vert.Set(tile[v].x, tile[v].y);
-            
+
             vertices.push(vert);
         }
-        
+
         fixDef.shape.SetAsArray(vertices, vertices.length);
-        fixDef.shape.m_radius = 1;
-        
+        //fixDef.shape.m_radius = 1;
+
         console.log(fixDef)
         world.CreateBody(bodyDef).CreateFixture(fixDef);
 
@@ -261,9 +258,10 @@ function render() {
 	}
 	t3player.position.x = body.position.x;
 	t3player.position.y = body.position.y;
-    camera.position.x = t3player.position.x
-	camera.position.y = t3player.position.y
-
+    camera.position.x = t3player.position.x;
+	camera.position.y = t3player.position.y +1;
+    bgMesh.position.x = camera.position.x;
+    bgMesh.position.y = camera.position.y;
 
 	// End of physics update
 
@@ -342,7 +340,7 @@ function getTerrain(nLevel, startHeight, color)
             amplitudes: [2, 1, 0.5],
             frequency: [5, 7, 13],
         },
-        Blue: {
+        Yellow: {
             amplitudes: [10, 4, 2],
             frequency: [5, 7, 13],
         },
