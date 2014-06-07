@@ -6,6 +6,12 @@ var renderer;
 
 var cube;
 
+// Timing
+// We need these to fix the framerate
+var fps = 60;
+var interval = 1000/fps;
+var lastTime;
+
 function init()
 {
     scene = new THREE.Scene();
@@ -22,6 +28,7 @@ function init()
 
     camera.position.z = 5;
 
+    lastTime = Date.now();
     render();
 }
 
@@ -29,8 +36,21 @@ function init()
 function render() {
     requestAnimationFrame(render);
 
-    cube.rotation.x += 0.1;
-    cube.rotation.y += 0.1;
+    currentTime = Date.now();
+    var dTime = currentTime - lastTime;
 
-    renderer.render(scene, camera);
+    if (dTime > interval)
+    {
+        // The modulo is to take care of the case that we skipped a frame
+        lastTime = currentTime - (dTime % interval);
+
+        var steps = Math.floor(dTime / interval);
+
+        dTime = steps * interval / 1000; // Now dTime is in seconds
+
+        cube.rotation.x += dTime;
+        cube.rotation.y += dTime;
+
+        renderer.render(scene, camera);
+    }
 }
