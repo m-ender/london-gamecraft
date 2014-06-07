@@ -55,9 +55,11 @@ function init()
 
 
     renderer = new THREE.WebGLRenderer();
-    renderer.setSize( window.innerWidth * 0.7, window.innerHeight * 0.7);
+    renderer.setSize( window.innerWidth * 0.99, window.innerHeight * 0.99);
     document.body.appendChild( renderer.domElement );
 
+    addLighting();
+    
     createPlayer();
 	var b2player;
 
@@ -184,6 +186,9 @@ var check = true;
 
 function populateTerrain(terrain) {
 
+    var groundTexture = THREE.ImageUtils.loadTexture('../assets/FINALTEXTURE.png');
+    var groundMaterial = new THREE.MeshBasicMaterial( { map: groundTexture, transparent: true} );
+    
     for (var i = 0; i < terrain.length; ++i) {
 
             var tile = terrain[i]
@@ -206,10 +211,21 @@ function populateTerrain(terrain) {
             geometry.vertices[6].y = tile[0].y
             geometry.vertices[7].x = tile[0].x
             geometry.vertices[7].y = tile[0].y
-            console.debug(geometry)
 
-            var material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
+            geometry.computeFaceNormals();
+            geometry.computeVertexNormals();
+            var xxx = geometry.faces.length;
+            var yyy = geometry.faces[0].vertexNormals.length;
+//        
+            for(var ii = 0; ii < xxx; ii++)
+                for(var jj = 0; jj < yyy; jj++)
+                    //console.log(ii , jj);
+                    geometry.faces[ii].vertexNormals[jj]=geometry.faces[ii].normal;
+
+//        geometry.normalsNeedUpdate = true;
+        var material = new THREE.MeshPhongMaterial( { color: 0x00ff00 } );
             var mesh = new THREE.Mesh( geometry, material );
+
 
             scene.add( mesh );
 
