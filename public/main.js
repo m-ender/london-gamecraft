@@ -107,11 +107,25 @@ function init()
 
 	updateFcts.push(function(delta){
 		var vector = new b2Vec2(0, 0);
-
+        var speedFactor = 1
+        //console.debug(b2player.GetLinearVelocity().x)
+        
+        // Player orientation from speed sign
+        if(b2player.GetLinearVelocity().x < -0.01)
+            t3player.rotation.y = Math.PI
+        else if(b2player.GetLinearVelocity().x > 0.01)
+            t3player.rotation.y = 0
+        
+        // Player inclination from absolute speed
+        var velrot = 1
+        if(Math.abs(b2player.GetLinearVelocity().x) < 40)
+            velrot = Math.abs(b2player.GetLinearVelocity().x / 50)
+            t3player.rotation.z = -1 * velrot * Math.PI / 6
+        
 		if( keyboard.pressed('left') ){
-			vector = new b2Vec2(-1, 0);
+			vector = new b2Vec2(-0.75 * speedFactor, 0);
 		}else if( keyboard.pressed('right') ){
-			vector = new b2Vec2(1, 0);
+			vector = new b2Vec2(0.75 * speedFactor, 0);
 		}else if( keyboard.pressed('e')){
             pickUpItems();
         }else if( keyboard.pressed('r')){
@@ -141,16 +155,7 @@ function init()
         }
 
 		var foo = player_fixture.GetBody().GetWorldCenter();
-		//b2player.ApplyImpulse(vector,foo);
         player_fixture.GetBody().ApplyImpulse(vector,foo);
-
-//		if( keyboard.pressed('down') ){
-//			t3player.rotation.x += 1 * delta;
-//		}else if( keyboard.pressed('up') ){
-//			t3player.rotation.x -= 1 * delta;
-//		}
-
-
 	});
 
 	// only on keydown
@@ -167,15 +172,11 @@ function init()
                 player_fixture.GetBody().ApplyImpulse(new b2Vec2(0, 15),foo);
             }
         }
-//		if( keyboard.eventMatches(event, 'w') )
-//
-//		if( keyboard.eventMatches(event, 's') )	t3player.scale.y	*= 2
 	});
 	// only on keyup
 	keyboard.domElement.addEventListener('keyup', function(event){
-		//if( keyboard.eventMatches(event, 'a') )	t3player.scale.x	*= 2
-		//if( keyboard.eventMatches(event, 'd') )	t3player.scale.x	/= 2
-	});
+        // Not used right now...
+    });
 	// End of keyboard code
 
     addLevel();
@@ -185,22 +186,26 @@ function init()
 }
 
 function createPlayer() {
-    //var playerTexture = THREE.ImageUtils.loadTexture('../assets/Character_for_testing.png');
-    var playerTexture = THREE.ImageUtils.loadTexture('../assets/updatedFairy.png');
-    var playerMaterial = new THREE.MeshBasicMaterial( { map: playerTexture, transparent: true} );
+    var playerTexture = THREE.ImageUtils.loadTexture('../assets/updatedFairy2.png');
+    playerTexture.flipX = true
+    playerTexture.needsUpdate = true
+    var playerMaterial = new THREE.MeshBasicMaterial( { map: playerTexture, transparent: true, side: THREE.DoubleSide} );
     var playerGeometry = new THREE.PlaneGeometry(1,4.5/4,1);
     t3player = new THREE.Mesh( playerGeometry, playerMaterial );
     t3player.position.x = 90;
     t3player.position.y = 1;
+    t3player.side = THREE.DoubleSide
     scene.add( t3player );
 }
 
+var bgTexture
 function createBackground() {
-    var bgTexture = THREE.ImageUtils.loadTexture('../assets/reducedbackground.png');
+    bgTexture = THREE.ImageUtils.loadTexture('../assets/reducedbackground.png');
     var bgMaterial = new THREE.MeshBasicMaterial({map: bgTexture});
     var bgGeometry = new THREE.PlaneGeometry(200, 100);
     bgMesh = new THREE.Mesh(bgGeometry, bgMaterial);
     bgMesh.position.z = -40;
+    bgMesh.uvsNeedUpdate = true
     scene.add(bgMesh);
 }
 
@@ -301,56 +306,60 @@ function pickUpItems() {
 var check = true;
 
 function populateTerrain(terrain) {
-
-    var groundTexture = THREE.ImageUtils.loadTexture('../assets/FINALTEXTURE.png');
+console.log("POPULATE TERRAIN")
+    var groundTexture = THREE.ImageUtils.loadTexture('../assets/FINALTEXTURE2.png');
     groundTexture.wrapS = groundTexture.wrapT = THREE.RepeatWrapping;
-    groundTexture.repeat.set( 1, 1 );
     
-        var groundMaterial = new THREE.MeshBasicMaterial( { map: groundTexture, transparent: true} );
+    var groundMaterial = new THREE.MeshBasicMaterial( { map: groundTexture, transparent: true} );
 
     for (var i = 0; i < terrain.length; ++i) {
 
-            var tile = terrain[i]
-            var geometry = new THREE.BoxGeometry(1,1,1)
+        var tile = terrain[i]
+        var geometry = new THREE.BoxGeometry(1,1,1)
 
 
-            geometry.vertices[0].x = tile[2].x
-            geometry.vertices[0].y = tile[2].y
-            geometry.vertices[1].x = tile[2].x
-            geometry.vertices[1].y = tile[2].y
-            geometry.vertices[2].x = tile[1].x
-            geometry.vertices[2].y = tile[1].y
-            geometry.vertices[3].x = tile[1].x
-            geometry.vertices[3].y = tile[1].y
-            geometry.vertices[4].x = tile[3].x
-            geometry.vertices[4].y = tile[3].y
-            geometry.vertices[5].x = tile[3].x
-            geometry.vertices[5].y = tile[3].y
-            geometry.vertices[6].x = tile[0].x
-            geometry.vertices[6].y = tile[0].y
-            geometry.vertices[7].x = tile[0].x
-            geometry.vertices[7].y = tile[0].y
+        geometry.vertices[0].x = tile[2].x
+        geometry.vertices[0].y = tile[2].y
+        geometry.vertices[1].x = tile[2].x
+        geometry.vertices[1].y = tile[2].y
+        geometry.vertices[2].x = tile[1].x
+        geometry.vertices[2].y = tile[1].y
+        geometry.vertices[3].x = tile[1].x
+        geometry.vertices[3].y = tile[1].y
+        geometry.vertices[4].x = tile[3].x
+        geometry.vertices[4].y = tile[3].y
+        geometry.vertices[5].x = tile[3].x
+        geometry.vertices[5].y = tile[3].y
+        geometry.vertices[6].x = tile[0].x
+        geometry.vertices[6].y = tile[0].y
+        geometry.vertices[7].x = tile[0].x
+        geometry.vertices[7].y = tile[0].y
 
-            geometry.computeFaceNormals();
-            geometry.computeVertexNormals();
-            var xxx = geometry.faces.length;
-            var yyy = geometry.faces[0].vertexNormals.length;
-//        
-            for(var ii = 0; ii < xxx; ii++)
-                for(var jj = 0; jj < yyy; jj++)
-                    //console.log(ii , jj);
-                    geometry.faces[ii].vertexNormals[jj]=geometry.faces[ii].normal;
-//            geometry.uvsNeedUpdate = true
-
-        console.debug("foo")
-            console.debug(geometry.faceVertexUvs)
+        var uRatio = 0.2
+        var vRatio = uRatio
+        var texRatioU = (tile[2].x - tile[3].x) * uRatio
+        var texRatioV = (tile[3].y - tile[0].y) * vRatio
         
-//        geometry.normalsNeedUpdate = true;
+        groundTexture.repeat.set( texRatioU, texRatioV );
+        
+        groundTexture.offset.x = tile[2].x
+        groundTexture.offset.y = tile[3].y
+        
+        console.log("distance:" + (tile[2].x - tile[3].x))
+        console.log(texRatioU)
+        
+        geometry.computeFaceNormals();
+        geometry.computeVertexNormals();
+        var xxx = geometry.faces.length;
+        var yyy = geometry.faces[0].vertexNormals.length;
+
+        for(var ii = 0; ii < xxx; ii++)
+            for(var jj = 0; jj < yyy; jj++)
+                geometry.faces[ii].vertexNormals[jj]=geometry.faces[ii].normal;
+
         var material = new THREE.MeshPhongMaterial( { color: 0x00ff00 } );
-            var mesh = new THREE.Mesh( geometry, groundMaterial );
-
-
-            scene.add( mesh );
+        var mesh = new THREE.Mesh( geometry, groundMaterial );
+        scene.add( mesh );
 
         var bodyDef = new b2BodyDef;
         var fixDef = new b2FixtureDef;
@@ -368,13 +377,10 @@ function populateTerrain(terrain) {
         }
 
         fixDef.shape.SetAsArray(vertices, vertices.length);
-        //fixDef.shape.m_radius = 1;
 
         console.log(fixDef)
         world.CreateBody(bodyDef).CreateFixture(fixDef);
-
     }
-
 }
 
 function render() {
@@ -391,18 +397,17 @@ function render() {
 	world.ClearForces();
     var body = player_fixture.GetBody().GetDefinition();
 
-	if(check) {
-        console.debug(t3player.position);
-        console.debug(body.position);
-
-		check = false;
-	}
 	t3player.position.x = body.position.x;
 	t3player.position.y = body.position.y;
     camera.position.x = t3player.position.x;
 	camera.position.y = t3player.position.y +1;
     bgMesh.position.x = camera.position.x;
     bgMesh.position.y = camera.position.y;
+    
+    bgTexture.offset.setX = camera.position.x * -1
+    console.debug(bgMesh.geometry.faceVertexUvs)
+    
+    //bgMesh.texture.offset.setX = camera.position.x * -1
 
     hudLeaves[0].position.x = camera.position.x - 7;
     hudLeaves[0].position.y = camera.position.y + 3;
